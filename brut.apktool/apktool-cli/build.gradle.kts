@@ -1,6 +1,5 @@
 val gitRevision: String by rootProject.extra
 val apktoolVersion: String by rootProject.extra
-val r8: Configuration by configurations.creating
 
 plugins {
     application
@@ -9,7 +8,6 @@ plugins {
 dependencies {
     implementation(project(":brut.apktool:apktool-lib"))
     implementation(libs.commons.cli)
-    r8(libs.r8)
 }
 
 application {
@@ -60,32 +58,19 @@ val shadowJar = tasks.register("shadowJar", Jar::class) {
     with(tasks.jar.get())
 }
 
-tasks.register<JavaExec>("proguard") {
+tasks.register<Copy>("proguard") {
     dependsOn("shadowJar")
-
-    onlyIf {
-        JavaVersion.current().isJava11Compatible
-    }
-
-    val proguardRules = file("proguard-rules.pro")
     val originalJar = shadowJar.map { it.outputs.files.singleFile }
 
-    inputs.files(originalJar, proguardRules)
+    group = "build"
+    description = "Copies the runnable JAR to the release artifact name"
+
+    inputs.file(originalJar)
     outputs.file("build/libs/apktool-$apktoolVersion.jar")
 
-    classpath(r8)
-    mainClass.set("com.android.tools.r8.R8")
-
-    args(
-        "--release",
-        "--classfile",
-        "--no-minification",
-        "--map-diagnostics:UnusedProguardKeepRuleDiagnostic", "info", "none",
-        "--lib", javaLauncher.get().metadata.installationPath.toString(),
-        "--output", outputs.files.singleFile.toString(),
-        "--pg-conf", proguardRules.toString(),
-        originalJar.get().toString()
-    )
+    from(originalJar)
+    rename { "apktool-$apktoolVersion.jar" }
+    into(layout.buildDirectory.dir("libs"))
 }
 
 tasks.withType<org.gradle.api.publish.maven.tasks.PublishToMavenRepository> {

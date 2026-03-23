@@ -18,13 +18,6 @@ package brut.androlib.smali;
 
 import brut.androlib.exceptions.AndrolibException;
 import brut.util.OS;
-import com.android.tools.smali.baksmali.Baksmali;
-import com.android.tools.smali.baksmali.BaksmaliOptions;
-import com.android.tools.smali.dexlib2.analysis.InlineMethodResolver;
-import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile;
-import com.android.tools.smali.dexlib2.dexbacked.DexBackedOdexFile;
-import com.android.tools.smali.dexlib2.dexbacked.ZipDexContainer;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
@@ -32,6 +25,13 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.jf.baksmali.Baksmali;
+import org.jf.baksmali.BaksmaliOptions;
+import org.jf.dexlib2.analysis.InlineMethodResolver;
+import org.jf.dexlib2.dexbacked.DexBackedDexFile;
+import org.jf.dexlib2.dexbacked.DexBackedOdexFile;
+import org.jf.dexlib2.dexbacked.ZipDexContainer;
+import org.jf.dexlib2.iface.MultiDexContainer;
 
 public class SmaliDecoder {
     private final ZipDexContainer mDexContainer;
@@ -63,7 +63,7 @@ public class SmaliDecoder {
     public void decode(String dexName, File outDir) throws AndrolibException {
         try {
             // Fetch the requested dex file from the dex container.
-            ZipDexContainer.DexEntry<DexBackedDexFile> dexEntry = mDexContainer.getEntry(dexName);
+            MultiDexContainer.DexEntry<DexBackedDexFile> dexEntry = mDexContainer.getEntry(dexName);
             if (dexEntry == null) {
                 throw new AndrolibException("Could not find file: " + dexName);
             }
